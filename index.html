@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rialo Game Snake</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Header Game -->
+        <header>
+            <div class="logo-container">
+                <img src="IMG_3277.jpeg" alt="Rialo Logo" class="rialo-logo">
+            </div>
+            <h1>RIALO GAME SNAKE</h1>
+            <div class="scoreboard">
+                <span id="score">SCORE: 0</span>
+                <span id="highScore">HIGH SCORE: 0</span>
+            </div>
+        </header>
+
+        <!-- Area Bermain (Canvas) -->
+        <main class="game-area">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            
+            <!-- Layar Game Over / Start -->
+            <div id="overlay" class="overlay">
+                <h2 id="overlay-title">SPACE MISSION</h2>
+                <p id="overlay-text">Tekan tombol di bawah untuk memulai</p>
+                <button id="start-btn">MULAI GAME</button>
+            </div>
+        </main>
+
+        <!-- Footer / Kredit Pembuat -->
+        <footer>
+            <p class="credits">By Felix X Cadis0871</p>
+        </footer>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
