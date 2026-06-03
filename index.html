@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rialo Game Snake</title>
     <link rel="stylesheet" href="style.css">
     
@@ -10,104 +10,112 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-    <!-- Kustomisasi Tampilan Keren Tambahan Tanpa Merusak style.css -->
     <style>
-        /* Desain Tombol Sosial Media di Atas */
+        /* Desain Header Modern & Bersih */
         .social-container {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         .social-btn {
             display: inline-flex;
             align-items: center;
-            padding: 6px 12px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            font-weight: bold;
+            padding: 8px 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
             text-decoration: none;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 5px rgba(255,255,255,0.1);
+            border-radius: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
         }
         .discord-btn {
-            background-color: #5865F2;
+            background: linear-gradient(135deg, #5865F2, #4752C4);
             color: #ffffff !important;
-            border: 1px solid #727ed4;
+            box-shadow: 0 4px 15px rgba(88, 101, 242, 0.2);
         }
         .twitter-btn {
-            background-color: #000000;
+            background: linear-gradient(135deg, #14171A, #000000);
             color: #ffffff !important;
-            border: 1px solid #333333;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .social-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 15px currentColor;
-            filter: brightness(1.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px currentColor;
+            filter: brightness(1.1);
         }
 
-        /* Desain Animasi Menu Utama (Overlay) yang Keren */
+        /* Area Canvas yang Lebih Presisi */
+        .game-area-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Tampilan Overlay Kaca Elegan (Glassmorphism) */
         .overlay {
-            background: rgba(10, 10, 10, 0.95) !important;
-            border: 2px solid #ffdd53;
-            box-shadow: inset 0 0 30px rgba(255, 221, 83, 0.2), 0 0 20px rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
+            background: rgba(18, 18, 18, 0.85) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 221, 83, 0.2);
+            transition: all 0.5s ease;
         }
         #overlay-title {
-            font-size: 28px !important;
+            font-size: 26px !important;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 800;
             color: #ffdd53 !important;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(255, 221, 83, 0.6), 2px 2px #000;
-            animation: textPulse 2s infinite alternate;
-            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 221, 83, 0.4);
+            margin-bottom: 8px;
         }
         #overlay-text {
             font-size: 13px !important;
-            color: #a0a0a0 !important;
-            font-family: 'Courier New', Courier, monospace;
-            margin-bottom: 25px;
+            color: #cccccc !important;
+            font-family: -apple-system, sans-serif;
+            margin-bottom: 30px;
+            opacity: 0.9;
         }
         #start-btn {
-            background: linear-gradient(45deg, #ffdd53, #ffb800) !important;
+            background: #ffdd53 !important;
             color: #121212 !important;
-            font-weight: bold !important;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 700 !important;
             border: none !important;
-            padding: 12px 30px !important;
+            padding: 14px 36px !important;
             font-size: 14px !important;
-            border-radius: 25px !important;
+            border-radius: 30px !important;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 221, 83, 0.4) !important;
-            transition: transform 0.2s, box-shadow 0.2s !important;
-            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(255, 221, 83, 0.3) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            letter-spacing: 0.5px;
         }
         #start-btn:hover {
-            transform: scale(1.08) !important;
-            box-shadow: 0 0 25px rgba(255, 221, 83, 0.8) !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 12px 30px rgba(255, 221, 83, 0.5) !important;
         }
 
-        /* Desain Tambahan Link Twitter Felix di Bagian Bawah (Footer) */
         .footer-link {
             color: #ffdd53 !important;
             text-decoration: none;
-            font-weight: bold;
-            margin-left: 5px;
-            transition: opacity 0.2s;
+            font-weight: 600;
+            margin-left: 4px;
         }
-        .footer-link:hover {
-            text-decoration: underline;
-            opacity: 0.8;
-        }
-
-        @keyframes textPulse {
-            from { text-shadow: 0 0 8px rgba(255, 221, 83, 0.5); }
-            to { text-shadow: 0 0 20px rgba(255, 221, 83, 0.9), 0 0 30px #ffdd53; }
+        
+        /* Menyembunyikan tombol panah jadul agar layar bersih dan elegan */
+        .mobile-controls {
+            display: none !important;
         }
     </style>
 </head>
 <body>
 
-    <!-- File audio musik MP3 universal yang stabil dan auto-loop -->
     <audio id="bgMusic" loop preload="auto">
         <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
     </audio>
@@ -116,14 +124,9 @@
 
     <div class="game-container">
         <header>
-            <!-- LINK SOSIAL MEDIA RESMI RIALO -->
             <div class="social-container">
-                <a href="https://discord.gg/rialoprotocol" target="_blank" class="social-btn discord-btn">
-                    💬 Discord
-                </a>
-                <a href="https://x.com/rialohq?s=21" target="_blank" class="social-btn twitter-btn">
-                    ✕ Twitter
-                </a>
+                <a href="https://discord.gg/rialoprotocol" target="_blank" class="social-btn discord-btn">💬 Discord</a>
+                <a href="https://x.com/rialohq?s=21" target="_blank" class="social-btn twitter-btn">✕ Twitter</a>
             </div>
 
             <div class="logo-container">
@@ -134,18 +137,22 @@
                 <span id="score">SCORE: 0</span>
                 <span id="highScore">HIGH SCORE: 0</span>
             </div>
+            <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin: 6px 0 0 0; font-family: -apple-system, sans-serif; letter-spacing: 0.3px;">
+                ✨ Kendali HP: **Geser/Swipe** layar ke arah mana saja untuk belok!
+            </p>
         </header>
 
-        <main class="game-area">
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-            
-            <!-- Tampilan Menu Utama Game Keren & Sinematik -->
-            <div id="overlay" class="overlay">
-                <h2 id="overlay-title">🛸 SPACE MISSION</h2>
-                <p id="overlay-text">Siapkan diri untuk mencetak skor tertinggi global!</p>
-                <button id="start-btn">MULAI BERMAIN</button>
-            </div>
-        </main>
+        <div class="game-area-wrapper">
+            <main class="game-area" id="swipeGameArea">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+                
+                <div id="overlay" class="overlay">
+                    <h2 id="overlay-title">🛸 SPACE MISSION</h2>
+                    <p id="overlay-text">Geser layar ponselmu untuk mengendalikan misi.</p>
+                    <button id="start-btn">MULAI BERMAIN</button>
+                </div>
+            </main>
+        </div>
 
         <section class="leaderboard-section">
             <h3>🏆 TOP 5 LEADERBOARD GLOBAL</h3>
@@ -154,17 +161,6 @@
             </ol>
         </section>
 
-        <div class="mobile-controls">
-            <button class="ctrl-btn up" id="ctrl-up">▲</button>
-            <div class="middle-row">
-                <button class="ctrl-btn left" id="ctrl-left">◀</button>
-                <div class="spacer"></div>
-                <button class="ctrl-btn right" id="ctrl-right">▶</button>
-            </div>
-            <button class="ctrl-btn down" id="ctrl-down">▼</button>
-        </div>
-
-        <!-- Bagian Footer dengan Link Twitter Felix Pribadi -->
         <footer>
             <p class="credits">
                 By Felix X Cadis0871 
@@ -184,11 +180,9 @@
             appId: "1:11880113468:web:5b6136228a99dde4756a39",
             measurementId: "G-FE3Q7JB02X"
         };
-
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
     </script>
-
     <script src="game.js"></script>
 </body>
 </html>
