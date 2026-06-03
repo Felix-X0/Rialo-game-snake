@@ -3,12 +3,11 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Courier New', Courier, monospace; /* Gaya retro/arcade */
+    font-family: 'Courier New', Courier, monospace;
 }
 
 body {
     background-color: #0b0c10;
-    /* Menggunakan IMG_3278.png sebagai background luar angkasa abstrak */
     background-image: url('IMG_3278.png');
     background-size: cover;
     background-position: center;
@@ -19,15 +18,17 @@ body {
     justify-content: center;
     align-items: center;
     color: #fff;
+    padding: 10px;
 }
 
 /* Container Utama */
 .game-container {
-    background: rgba(11, 12, 16, 0.85); /* Efek transparan gelap di atas background */
-    border: 4px solid #f0efe9; /* Warna krem khas Rialo */
+    background: rgba(11, 12, 16, 0.85);
+    border: 4px solid #f0efe9;
     border-radius: 12px;
-    padding: 20px;
-    width: 450px;
+    padding: 15px;
+    width: 100%;
+    max-width: 430px;
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.1);
     text-align: center;
     backdrop-filter: blur(5px);
@@ -35,46 +36,47 @@ body {
 
 /* Header & Logo */
 header {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .logo-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .rialo-logo {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     border: 2px solid #f0efe9;
     object-fit: cover;
 }
 
 h1 {
-    font-size: 1.6rem;
-    letter-spacing: 2px;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
     color: #f0efe9;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .scoreboard {
     display: flex;
     justify-content: space-between;
     background: #1f2833;
-    padding: 8px 15px;
+    padding: 6px 12px;
     border-radius: 6px;
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     border: 1px solid rgba(240, 239, 233, 0.3);
 }
 
-/* Canvas & Area Game */
+/* Canvas & Area Game (Responsif HP) */
 .game-area {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 380px;
     margin: 0 auto;
 }
 
@@ -82,6 +84,8 @@ h1 {
     background: #121212;
     border: 2px solid #f0efe9;
     border-radius: 4px;
+    width: 100%;
+    height: 100%;
     display: block;
 }
 
@@ -104,12 +108,12 @@ h1 {
 .overlay h2 {
     color: #ff4a4a;
     margin-bottom: 10px;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
 }
 
 .overlay p {
-    font-size: 0.9rem;
-    margin-bottom: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
     color: #ccc;
 }
 
@@ -117,28 +121,63 @@ h1 {
     background: #f0efe9;
     color: #0b0c10;
     border: none;
-    padding: 10px 25px;
-    font-size: 1rem;
+    padding: 8px 20px;
+    font-size: 0.9rem;
     font-weight: bold;
     cursor: pointer;
     border-radius: 4px;
-    transition: 0.2s;
 }
 
-#start-btn:hover {
-    background: #fff;
-    transform: scale(1.05);
+/* Desain Tombol Kontrol HP D-Pad */
+.mobile-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px 0 5px 0;
+}
+
+.middle-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 200px;
+    margin: 5px 0;
+}
+
+.spacer {
+    width: 60px;
+}
+
+.ctrl-btn {
+    width: 55px;
+    height: 55px;
+    background: rgba(240, 239, 233, 0.2);
+    border: 2px solid #f0efe9;
+    color: #f0efe9;
+    font-size: 1.4rem;
+    font-weight: bold;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-user-select: none; /* Mencegah teks terseleksi saat di-tap cepat */
+    user-select: none;
+}
+
+.ctrl-btn:active {
+    background: #f0efe9;
+    color: #0b0c10;
 }
 
 /* Footer Kredit */
 footer {
-    margin-top: 20px;
+    margin-top: 10px;
     border-top: 1px solid rgba(240, 239, 233, 0.2);
-    padding-top: 10px;
+    padding-top: 8px;
 }
 
 .credits {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #888;
-    letter-spacing: 1px;
 }
