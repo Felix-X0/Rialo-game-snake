@@ -8,16 +8,7 @@ const overlayText = document.getElementById("overlay-text");
 const startBtn = document.getElementById("start-btn");
 const leaderboardList = document.getElementById("leaderboard-list");
 const rialoLogoImg = document.getElementById("rialoLogoSource");
-const swipeGameArea = document.getElementById("swipeGameArea");
-
-// Element Audio Baru
 const bgMusic = document.getElementById("bgMusic");
-const sfxEat = document.getElementById("sfxEat");
-const sfxGameOver = document.getElementById("sfxGameOver");
-
-// Element Status Level Baru
-const levelDisplay = document.getElementById("level-display");
-const speedDisplay = document.getElementById("speed-display");
 
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
@@ -31,66 +22,40 @@ let currentHighScore = 0;
 let gameInterval;
 let isGameRunning = false;
 
-// Atribut Mekanik Tingkat Kesulitan Dinamis
-let currentLevel = 1;
-let currentSpeedMs = 120; // Kecepatan awal (Makin kecil makin cepat)
-
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
-
+// Memuat data papan peringkat pertama kali dijalankan
 tampilkanLeaderboardGlobal();
 
+// Event Listener Kontrol Utama
 startBtn.addEventListener("click", startGame);
 document.addEventListener("keydown", changeDirection);
 
-// Deteksi Gesture Swipe Layar
-swipeGameArea.addEventListener("touchstart", function(e) {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-}, {passive: true});
+document.getElementById("ctrl-up").addEventListener("click", () => triggerDirection("UP"));
+document.getElementById("ctrl-down").addEventListener("click", () => triggerDirection("DOWN"));
+document.getElementById("ctrl-left").addEventListener("click", () => triggerDirection("LEFT"));
+document.getElementById("ctrl-right").addEventListener("click", () => triggerDirection("RIGHT"));
 
-swipeGameArea.addEventListener("touchend", function(e) {
-    if (!isGameRunning) return;
-    touchEndX = e.changedTouches[0].screenX;
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipeGesture();
-}, {passive: true});
-
-function handleSwipeGesture() {
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-    const minSwipeDistance = 25; 
-
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (Math.abs(deltaX) > minSwipeDistance) {
-            if (deltaX > 0) triggerDirection("RIGHT");
-            else triggerDirection("LEFT");
-        }
-    } else {
-        if (Math.abs(deltaY) > minSwipeDistance) {
-            if (deltaY > 0) triggerDirection("DOWN");
-            else triggerDirection("UP");
-        }
-    }
-}
-
-document.body.addEventListener('touchmove', function(e) {
-    if (isGameRunning) e.preventDefault();
-}, { passive: false });
+// Mencegah layar bergeser (Scroll) otomatis saat tombol HP ditekan
+const noScrollButtons = document.querySelectorAll('.ctrl-btn');
+noScrollButtons.forEach(btn => {
+    btn.addEventListener('touchstart', (e) => e.preventDefault(), {passive: false});
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        btn.click();
+    }, {passive: false});
+});
 
 function startGame() {
     overlay.style.display = "none";
     isGameRunning = true;
 
-    // Pengaturan suara musik latar (dikecilkan agar SFX makan terdengar jelas)
+    // Memainkan musik latar dengan aman setelah interaksi klik pengguna
     if(bgMusic) {
-        bgMusic.volume = 0.12;
+        bgMusic.volume = 0.25; // Mengeset volume di tingkat yang pas (25%)
         bgMusic.currentTime = 0;
-        bgMusic.play().catch(e => console.log("Menunggu interaksi."));
+        bgMusic.play().catch(e => console.log("Menunggu interaksi browser lengkap."));
     }
 
+    // Posisi awal ular
     snake = [
         { x: gridSize * 5, y: gridSize * 10 },
         { x: gridSize * 4, y: gridSize * 10 },
@@ -100,17 +65,12 @@ function startGame() {
     dx = gridSize;
     dy = 0;
     score = 0;
-    currentLevel = 1;
-    currentSpeedMs = 120;
-
     scoreElement.innerText = `SCORE: ${score}`;
     highScoreElement.innerText = `HIGH SCORE: ${currentHighScore}`;
-    levelDisplay.innerText = `🚀 LEVEL: ${currentLevel}`;
-    speedDisplay.innerText = `⚡ SPEED: 1.0x`;
 
     generateFood();
     clearInterval(gameInterval);
-    gameInterval = setInterval(gameLoop, currentSpeedMs);
+    gameInterval = setInterval(gameLoop, 115);
 }
 
 function gameLoop() {
@@ -131,7 +91,8 @@ function clearCanvas() {
 
 function drawSnake() {
     snake.forEach((part, idx) => {
-        ctx.fillStyle = idx === 0 ? "#ffffff" : "#ffdd53";
+        // Kepala berwarna abu terang, badan berwarna kuning khas Rialo
+        ctx.fillStyle = idx === 0 ? "#f0efe9" : "#ffdd53";
         ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
     });
 }
@@ -140,33 +101,10 @@ function moveSnake() {
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
     snake.unshift(head);
 
+    // Jika ular memakan Logo Rialo
     if (snake[0].x === food.x && snake[0].y === food.y) {
         score += 10;
         scoreElement.innerText = `SCORE: ${score}`;
-        
-        // Memutar Efek Suara Makan Koin Instan
-        if(sfxEat) {
-            sfxEat.currentTime = 0;
-            sfxEat.volume = 0.5;
-            sfxEat.play().catch(o => {});
-        }
-
-        // HITUNG LEVEL DAN TINGKAT KECEPATAN (Naik setiap kelipatan 50 poin)
-        let levelSekarang = Math.floor(score / 50) + 1;
-        if (levelSekarang !== currentLevel && levelSekarang <= 5) {
-            currentLevel = levelSekarang;
-            currentSpeedMs = 120 - (currentLevel - 1) * 15; // Menjadi lebih cepat 15ms per level
-            
-            // Perbarui Interval Game secara Real-time dengan kecepatan baru
-            clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, currentSpeedMs);
-        }
-
-        // Perbarui Tampilan Teks di Atas Game
-        levelDisplay.innerText = `🚀 LEVEL: ${currentLevel}`;
-        let speedMultiplier = (120 / currentSpeedMs).toFixed(1);
-        speedDisplay.innerText = `⚡ SPEED: ${speedMultiplier}x`;
-
         generateFood();
     } else {
         snake.pop();
@@ -176,6 +114,8 @@ function moveSnake() {
 function generateFood() {
     food.x = Math.floor(Math.random() * tileCount) * gridSize;
     food.y = Math.floor(Math.random() * tileCount) * gridSize;
+
+    // Menghindari makanan muncul persis di atas tubuh ular
     snake.forEach(part => {
         if (part.x === food.x && part.y === food.y) generateFood();
     });
@@ -207,7 +147,11 @@ function changeDirection(e) {
 }
 
 function checkGameOver() {
-    if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height) return true;
+    // Menabrak dinding pembatas
+    if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height) {
+        return true;
+    }
+    // Menabrak tubuh sendiri
     for (let i = 4; i < snake.length; i++) {
         if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
     }
@@ -218,22 +162,19 @@ function endGame() {
     clearInterval(gameInterval);
     isGameRunning = false;
 
-    if(bgMusic) bgMusic.pause();
-
-    // Memutar Efek Suara Ledakan/Crash Game Over
-    if(sfxGameOver) {
-        sfxGameOver.currentTime = 0;
-        sfxGameOver.volume = 0.4;
-        sfxGameOver.play().catch(o => {});
+    // Menghentikan musik saat Game Over agar dramatis
+    if(bgMusic) {
+        bgMusic.pause();
     }
 
-    overlayTitle.innerText = "💥 MISSION OVER";
-    overlayText.innerText = `Mencapai Level ${currentLevel} dengan Skor: ${score}`;
+    overlayTitle.innerText = "💥 GAME OVER";
+    overlayText.innerText = `Skor Kamu: ${score} | Coba lagi untuk mengalahkan rekor!`;
     startBtn.innerText = "MAIN LAGI";
     overlay.style.display = "flex";
 
+    // Menampilkan input nama global
     setTimeout(() => {
-        let playerName = prompt("👾 Masukkan namamu untuk Leaderboard Global:");
+        let playerName = prompt("👾 GAME OVER! Masukkan namamu untuk Leaderboard Global:");
         if (!playerName || playerName.trim() === "") playerName = "Player";
         
         database.ref('leaderboard').push({
@@ -247,13 +188,16 @@ function endGame() {
 function tampilkanLeaderboardGlobal() {
     database.ref('leaderboard').orderByChild('score').limitToLast(5).on('value', (snapshot) => {
         let scores = [];
-        snapshot.forEach(child => { scores.push(child.val()); });
+        snapshot.forEach(child => {
+            scores.push(child.val());
+        });
         scores.reverse();
 
         if (scores[0]) {
             currentHighScore = scores[0].score;
             highScoreElement.innerText = `HIGH SCORE: ${currentHighScore}`;
         }
+
         if (scores.length === 0) {
             leaderboardList.innerHTML = "<li><span class=\"rank-name\">Belum ada rekor dunia.</span></li>";
         } else {
