@@ -9,6 +9,7 @@ const startBtn = document.getElementById("start-btn");
 const leaderboardList = document.getElementById("leaderboard-list");
 const rialoLogoImg = document.getElementById("rialoLogoSource");
 const bgMusic = document.getElementById("bgMusic");
+const swipeGameArea = document.getElementById("swipeGameArea");
 
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
@@ -22,40 +23,78 @@ let currentHighScore = 0;
 let gameInterval;
 let isGameRunning = false;
 
-// Memuat data papan peringkat pertama kali dijalankan
+// Koordinat untuk melacak geseran jari (Swipe)
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
 tampilkanLeaderboardGlobal();
 
-// Event Listener Kontrol Utama
 startBtn.addEventListener("click", startGame);
 document.addEventListener("keydown", changeDirection);
 
-document.getElementById("ctrl-up").addEventListener("click", () => triggerDirection("UP"));
-document.getElementById("ctrl-down").addEventListener("click", () => triggerDirection("DOWN"));
-document.getElementById("ctrl-left").addEventListener("click", () => triggerDirection("LEFT"));
-document.getElementById("ctrl-right").addEventListener("click", () => triggerDirection("RIGHT"));
+// FITUR KONTROL PREMIUM: Deteksi Swipe Layar Pintar
+swipeGameArea.addEventListener("touchstart", function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, {passive: true});
 
-// Mencegah layar bergeser (Scroll) otomatis saat tombol HP ditekan
-const noScrollButtons = document.querySelectorAll('.ctrl-btn');
-noScrollButtons.forEach(btn => {
-    btn.addEventListener('touchstart', (e) => e.preventDefault(), {passive: false});
-    btn.addEventListener('touchend', (e) => {
+swipeGameArea.addEventListener("touchend", function(e) {
+    if (!isGameRunning) return;
+    
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    
+    handleSwipeGesture();
+}, {passive: true});
+
+function handleSwipeGesture() {
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    // Batas minimal jarak geser (piksel) supaya tidak sensitif tidak sengaja tersenggol
+    const minSwipeDistance = 30; 
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Geser Horizontal (Kiri/Kanan)
+        if (Math.abs(deltaX) > minSwipeDistance) {
+            if (deltaX > 0) {
+                triggerDirection("RIGHT");
+            } else {
+                triggerDirection("LEFT");
+            }
+        }
+    } else {
+        // Geser Vertikal (Atas/Bawah)
+        if (Math.abs(deltaY) > minSwipeDistance) {
+            if (deltaY > 0) {
+                triggerDirection("DOWN");
+            } else {
+                triggerDirection("UP");
+            }
+        }
+    }
+}
+
+// Mencegah halaman naik turun/memantul saat asyik nge-swipe di HP
+document.body.addEventListener('touchmove', function(e) {
+    if (isGameRunning) {
         e.preventDefault();
-        btn.click();
-    }, {passive: false});
-});
+    }
+}, { passive: false });
+
 
 function startGame() {
     overlay.style.display = "none";
     isGameRunning = true;
 
-    // Memainkan musik latar dengan aman setelah interaksi klik pengguna
     if(bgMusic) {
-        bgMusic.volume = 0.25; // Mengeset volume di tingkat yang pas (25%)
+        bgMusic.volume = 0.20;
         bgMusic.currentTime = 0;
-        bgMusic.play().catch(e => console.log("Menunggu interaksi browser lengkap."));
+        bgMusic.play().catch(e => console.log("Menunggu interaksi."));
     }
 
-    // Posisi awal ular
     snake = [
         { x: gridSize * 5, y: gridSize * 10 },
         { x: gridSize * 4, y: gridSize * 10 },
@@ -91,8 +130,8 @@ function clearCanvas() {
 
 function drawSnake() {
     snake.forEach((part, idx) => {
-        // Kepala berwarna abu terang, badan berwarna kuning khas Rialo
-        ctx.fillStyle = idx === 0 ? "#f0efe9" : "#ffdd53";
+        // Desain Kepala Minimalis & Badan Emas Elegan
+        ctx.fillStyle = idx === 0 ? "#ffffff" : "#ffdd53";
         ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
     });
 }
@@ -101,7 +140,6 @@ function moveSnake() {
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
     snake.unshift(head);
 
-    // Jika ular memakan Logo Rialo
     if (snake[0].x === food.x && snake[0].y === food.y) {
         score += 10;
         scoreElement.innerText = `SCORE: ${score}`;
@@ -115,7 +153,6 @@ function generateFood() {
     food.x = Math.floor(Math.random() * tileCount) * gridSize;
     food.y = Math.floor(Math.random() * tileCount) * gridSize;
 
-    // Menghindari makanan muncul persis di atas tubuh ular
     snake.forEach(part => {
         if (part.x === food.x && part.y === food.y) generateFood();
     });
@@ -147,11 +184,9 @@ function changeDirection(e) {
 }
 
 function checkGameOver() {
-    // Menabrak dinding pembatas
     if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height) {
         return true;
     }
-    // Menabrak tubuh sendiri
     for (let i = 4; i < snake.length; i++) {
         if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
     }
@@ -162,19 +197,17 @@ function endGame() {
     clearInterval(gameInterval);
     isGameRunning = false;
 
-    // Menghentikan musik saat Game Over agar dramatis
     if(bgMusic) {
         bgMusic.pause();
     }
 
-    overlayTitle.innerText = "💥 GAME OVER";
-    overlayText.innerText = `Skor Kamu: ${score} | Coba lagi untuk mengalahkan rekor!`;
-    startBtn.innerText = "MAIN LAGI";
+    overlayTitle.innerText = "💥 MISSION OVER";
+    overlayText.innerText = `Skor Kamu: ${score} | Kalahkan rekor global berikutnya!`;
+    startBtn.innerText = "COBA LAGI";
     overlay.style.display = "flex";
 
-    // Menampilkan input nama global
     setTimeout(() => {
-        let playerName = prompt("👾 GAME OVER! Masukkan namamu untuk Leaderboard Global:");
+        let playerName = prompt("👾 Masukkan namamu untuk Leaderboard Global:");
         if (!playerName || playerName.trim() === "") playerName = "Player";
         
         database.ref('leaderboard').push({
