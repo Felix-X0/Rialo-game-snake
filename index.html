@@ -8,6 +8,9 @@
 </head>
 <body>
 
+    <!-- Gambar Tersembunyi untuk Memuat Logo Rialo ke dalam Canvas Game -->
+    <img id="rialoLogoSource" src="IMG_3277.jpeg" alt="Rialo Logo Source" style="display: none;">
+
     <div class="game-container">
         <!-- Header Game -->
         <header>
@@ -32,6 +35,16 @@
                 <button id="start-btn">MULAI GAME</button>
             </div>
         </main>
+
+        <!-- Papan Peringkat / Leaderboard -->
+        <section class="leaderboard-section">
+            <h3>🏆 TOP LEADERBOARD</h3>
+            <ol id="leaderboard-list">
+                <li><span class="rank-name">Felix</span> <span class="rank-score">0</span></li>
+                <li><span class="rank-name">Rialo Bot</span> <span class="rank-score">0</span></li>
+                <li><span class="rank-name">Player 3</span> <span class="rank-score">0</span></li>
+            </ol>
+        </section>
 
         <!-- Tombol Kontrol khusus HP -->
         <div class="mobile-controls">
