@@ -21,19 +21,12 @@ let food = { x: 0, y: 0 };
 let dx = gridSize;
 let dy = 0;
 let score = 0;
-let highScore = 0;
+let currentHighScore = 0;
 let gameInterval;
 let isGameRunning = false;
 
-// Data Simpanan Leaderboard Berbasis Penyimpanan Lokal HP (Local Storage)
-let leaderboards = JSON.parse(localStorage.getItem("rialo_leaderboard")) || [
-    { name: "Felix", score: 50 },
-    { name: "Rialo Bot", score: 30 },
-    { name: "Player 3", score: 10 }
-];
-
-// Jalankan fungsi memuat peringkat pertama kali game dibuka
-updateLeaderboardUI();
+// Memuat Leaderboard Global dari Server Firebase secara Otomatis
+tampilkanLeaderboardGlobal();
 
 // Event Listener
 startBtn.addEventListener("click", startGame);
@@ -66,10 +59,7 @@ function startGame() {
     dy = 0;
     score = 0;
     scoreElement.innerText = `SCORE: ${score}`;
-    
-    // Ambil high score tersimpan di data leaderboard
-    highScore = leaderboards[0] ? leaderboards[0].score : 0;
-    highScoreElement.innerText = `HIGH SCORE: ${highScore}`;
+    highScoreElement.innerText = `HIGH SCORE: ${currentHighScore}`;
     
     generateFood();
     clearInterval(gameInterval);
@@ -90,7 +80,6 @@ function gameLoop() {
 function clearCanvas() {
     ctx.fillStyle = "#121212";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
     for (let i = 0; i < canvas.width; i += gridSize) {
         ctx.beginPath();
@@ -100,15 +89,13 @@ function clearCanvas() {
     }
 }
 
-// MENGUBAH ULAR: Berwarna Emas Rialo Elegan dengan Kepala Lebih Terang
 function drawSnake() {
     snake.forEach((part, index) => {
         if (index === 0) {
-            ctx.fillStyle = "#f0efe9"; // Kepala Ular Putih Rialo
+            ctx.fillStyle = "#f0efe9"; 
         } else {
-            ctx.fillStyle = "#ffdd53"; // Badan Ular Emas Berkilau
+            ctx.fillStyle = "#ffdd53"; 
         }
-        
         ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
         ctx.strokeStyle = "#121212";
         ctx.strokeRect(part.x, part.y, gridSize - 1, gridSize - 1);
@@ -131,25 +118,19 @@ function moveSnake() {
 function generateFood() {
     food.x = Math.floor(Math.random() * tileCount) * gridSize;
     food.y = Math.floor(Math.random() * tileCount) * gridSize;
-
     snake.forEach(part => {
         if (part.x === food.x && part.y === food.y) generateFood();
     });
 }
 
-// MENGUBAH BOLA MAKANAN JADI LOGO RIALO BULAT
 function drawFood() {
     ctx.save();
     ctx.beginPath();
-    // Buat kliping lingkaran agar gambar logo berbentuk bulat sempurna
     ctx.arc(food.x + gridSize / 2, food.y + gridSize / 2, gridSize / 2, 0, Math.PI * 2);
     ctx.clip();
-    
-    // Gambar Logo Rialo (IMG_3277.jpeg) tepat di posisi makanan tersebut
     ctx.drawImage(rialoLogoImg, food.x, food.y, gridSize, gridSize);
     ctx.restore();
     
-    // Tambahkan efek cahaya tipis di pinggir logo makanan
     ctx.strokeStyle = "#ffdd53";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -167,7 +148,7 @@ function triggerDirection(dir) {
     if (dir === "LEFT" && !goingRight) { dx = -gridSize; dy = 0; }
     if (dir === "UP" && !goingDown) { dx = 0; dy = -gridSize; }
     if (dir === "RIGHT" && !goingLeft) { dx = gridSize; dy = 0; }
-    if (dir === "DOWN" && !goingUp) { dx = 0; dy = gridSize; }
+    if (dir === "DOWN" && !goingUp) { dx = 0; dy = -gridSize; dy = gridSize; }
 }
 
 function changeDirection(event) {
@@ -195,42 +176,47 @@ function endGame() {
     startBtn.innerText = "MAIN LAGI";
     overlay.style.display = "flex";
 
-    // Cek apakah skor masuk 3 besar leaderboard
-    checkLeaderboardRecord(score);
+    // Kirim langsung ke server Firebase global
+    setTimeout(() => {
+        let playerName = prompt("👾 GAME OVER! Masukkan namamu untuk Leaderboard Global:");
+        if (!playerName || playerName.trim() === "") playerName = "Player";
+        
+        // Simpan data ke server Firebase
+        database.ref('leaderboard').push({
+            name: playerName.slice(0, 10),
+            score: parseInt(score),
+            timestamp: Date.now()
+        });
+    }, 400);
 }
 
-// LOGIKA SISTEM REKORD LEADERBOARD
-function checkLeaderboardRecord(finalScore) {
-    // Jika skor lebih tinggi dari peringkat terbawah di leaderboard saat ini
-    if (finalScore > leaderboards[2].score) {
-        // Beri jeda sedikit setelah game over biar animasi mulus, lalu minta input nama pemain
-        setTimeout(() => {
-            let playerName = prompt("🔥 LUAR BIASA! Kamu masuk TOP 3 Leaderboard. Masukkan namamu:");
-            if (!playerName || playerName.trim() === "") playerName = "Player";
-            
-            // Masukkan data skor baru
-            leaderboards.push({ name: playerName.slice(0, 12), score: finalScore });
-            
-            // Urutkan dari skor tertinggi ke terendah
-            leaderboards.sort((a, b) => b.score - a.score);
-            
-            // Ambil 3 teratas saja
-            leaderboards = leaderboards.slice(0, 3);
-            
-            // Simpan secara permanen di browser HP
-            localStorage.setItem("rialo_leaderboard", JSON.stringify(leaderboards));
-            
-            // Perbarui tampilan Papan Skor
-            updateLeaderboardUI();
-        }, 500);
-    }
-}
+// LOGIKA REALTIME DATABASE FIREBASE
+function tampilkanLeaderboardGlobal() {
+    database.ref('leaderboard').orderByChild('score').limitToLast(5).on('value', (snapshot) => {
+        let globalScores = [];
+        snapshot.forEach((childSnapshot) => {
+            globalScores.push(childSnapshot.val());
+        });
+        
+        // Balik urutan agar yang tertinggi berada di atas
+        globalScores.reverse();
+        
+        // Update skor tertinggi global saat ini untuk UI game
+        if (globalScores[0]) {
+            currentHighScore = globalScores[0].score;
+            highScoreElement.innerText = `HIGH SCORE: ${currentHighScore}`;
+        }
 
-function updateLeaderboardUI() {
-    leaderboardList.innerHTML = "";
-    leaderboards.forEach((player) => {
-        const li = document.createElement("li");
-        li.innerHTML = `<span class="rank-name">${player.name}</span> <span class="rank-score">${player.score}</span>`;
-        leaderboardList.appendChild(li);
+        // Cetak daftar ke tabel HTML
+        leaderboardList.innerHTML = "";
+        if (globalScores.length === 0) {
+            leaderboardList.innerHTML = "<li><span class='rank-name'>Belum ada rekord. Jadilah yang pertama!</span></li>";
+        } else {
+            globalScores.forEach((player, index) => {
+                const li = document.createElement("li");
+                li.innerHTML = `<span class="rank-name">${index + 1}. ${player.name}</span> <span class="rank-score">${player.score}</span>`;
+                leaderboardList.appendChild(li);
+            });
+        }
     });
 }
