@@ -84,6 +84,19 @@
             box-shadow: 0 0 25px rgba(255, 221, 83, 0.8) !important;
         }
 
+        /* Desain Tambahan Link Twitter Felix di Bagian Bawah (Footer) */
+        .footer-link {
+            color: #ffdd53 !important;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 5px;
+            transition: opacity 0.2s;
+        }
+        .footer-link:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
         @keyframes textPulse {
             from { text-shadow: 0 0 8px rgba(255, 221, 83, 0.5); }
             to { text-shadow: 0 0 20px rgba(255, 221, 83, 0.9), 0 0 30px #ffdd53; }
@@ -143,7 +156,10 @@
         </div>
 
         <footer>
-            <p class="credits">By Felix X Cadis0871</p>
+            <p class="credits">
+                By Felix X Cadis0871 
+                <a href="https://x.com/felixxx_0x?s=21" target="_blank" class="footer-link">(@felixxx_0x)</a>
+            </p>
         </footer>
     </div>
 
