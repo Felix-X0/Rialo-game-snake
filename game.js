@@ -27,12 +27,26 @@ let isGameRunning = false;
 startBtn.addEventListener("click", startGame);
 document.addEventListener("keydown", changeDirection);
 
+// Event Listener untuk Kontrol Layar Sentuh HP
+document.getElementById("ctrl-up").addEventListener("click", () => triggerDirection("UP"));
+document.getElementById("ctrl-down").addEventListener("click", () => triggerDirection("DOWN"));
+document.getElementById("ctrl-left").addEventListener("click", () => triggerDirection("LEFT"));
+document.getElementById("ctrl-right").addEventListener("click", () => triggerDirection("RIGHT"));
+
+// Mencegah layar scroll otomatis saat tombol di-tap di HP
+const noScrollButtons = document.querySelectorAll('.ctrl-btn');
+noScrollButtons.forEach(btn => {
+    btn.addEventListener('touchstart', (e) => e.preventDefault(), {passive: false});
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        btn.click();
+    }, {passive: false});
+});
+
 function startGame() {
-    // Sembunyikan Overlay
     overlay.style.display = "none";
     isGameRunning = true;
     
-    // Reset Data Game
     snake = [
         { x: gridSize * 5, y: gridSize * 10 },
         { x: gridSize * 4, y: gridSize * 10 },
@@ -45,9 +59,8 @@ function startGame() {
     
     generateFood();
     
-    // Jalankan Loop Game (Kecepatan: 100ms per frame)
     clearInterval(gameInterval);
-    gameInterval = setInterval(gameLoop, 100);
+    gameInterval = setInterval(gameLoop, 110); // Kecepatan disesuaikan agar pas di HP
 }
 
 function gameLoop() {
@@ -63,11 +76,9 @@ function gameLoop() {
 }
 
 function clearCanvas() {
-    // Latar belakang grid luar angkasa gelap dengan bintang-bintang tipis
     ctx.fillStyle = "#121212";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Efek grid tipis ala peta navigasi luar angkasa
     ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
     for (let i = 0; i < canvas.width; i += gridSize) {
         ctx.beginPath();
@@ -83,7 +94,6 @@ function clearCanvas() {
 
 function drawSnake() {
     snake.forEach((part, index) => {
-        // Kepala ular berwarna Krem Rialo, badannya gradasi abu-abu/hitam futuristik
         if (index === 0) {
             ctx.fillStyle = "#f0efe9"; 
         } else {
@@ -100,7 +110,6 @@ function moveSnake() {
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
     snake.unshift(head);
 
-    // Cek apakah ular memakan makanan (planet/bintang kecil)
     const hasEaten = snake[0].x === food.x && snake[0].y === food.y;
     if (hasEaten) {
         score += 10;
@@ -115,7 +124,6 @@ function generateFood() {
     food.x = Math.floor(Math.random() * tileCount) * gridSize;
     food.y = Math.floor(Math.random() * tileCount) * gridSize;
 
-    // Pastikan makanan tidak muncul di tubuh ular
     snake.forEach(part => {
         if (part.x === food.x && part.y === food.y) {
             generateFood();
@@ -124,44 +132,42 @@ function generateFood() {
 }
 
 function drawFood() {
-    // Makanan didesain bersinar seperti benda kosmik mini
     ctx.fillStyle = "#ffdd53";
     ctx.shadowBlur = 10;
     ctx.shadowColor = "#ffdd53";
     ctx.beginPath();
     ctx.arc(food.x + gridSize/2, food.y + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Reset efek shadow agar tidak memengaruhi objek lain
     ctx.shadowBlur = 0;
 }
 
-function changeDirection(event) {
+// Logika pergerakan tombol HP dan Keyboard
+function triggerDirection(dir) {
     if (!isGameRunning) return;
-
-    const keyPressed = event.keyCode;
-    const LEFT = 37;
-    const UP = 38;
-    const RIGHT = 39;
-    const DOWN = 40;
 
     const goingUp = dy === -gridSize;
     const goingDown = dy === gridSize;
     const goingRight = dx === gridSize;
     const goingLeft = dx === -gridSize;
 
-    if (keyPressed === LEFT && !goingRight) { dx = -gridSize; dy = 0; }
-    if (keyPressed === UP && !goingDown) { dx = 0; dy = -gridSize; }
-    if (keyPressed === RIGHT && !goingLeft) { dx = gridSize; dy = 0; }
-    if (keyPressed === DOWN && !goingUp) { dx = 0; dy = gridSize; }
+    if (dir === "LEFT" && !goingRight) { dx = -gridSize; dy = 0; }
+    if (dir === "UP" && !goingDown) { dx = 0; dy = -gridSize; }
+    if (dir === "RIGHT" && !goingLeft) { dx = gridSize; dy = 0; }
+    if (dir === "DOWN" && !goingUp) { dx = 0; dy = gridSize; }
+}
+
+function changeDirection(event) {
+    const keyPressed = event.keyCode;
+    if (keyPressed === 37) triggerDirection("LEFT");
+    if (keyPressed === 38) triggerDirection("UP");
+    if (keyPressed === 39) triggerDirection("RIGHT");
+    if (keyPressed === 40) triggerDirection("DOWN");
 }
 
 function checkGameOver() {
-    // Menabrak dinding luar angkasa
     if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height) {
         return true;
     }
-    // Menabrak ekor sendiri
     for (let i = 4; i < snake.length; i++) {
         if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
     }
