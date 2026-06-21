@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rialo Game Snake</title>
+    <title>Retro Snake Game</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Memuat SDK Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
-        /* Desain Header Modern & Bersih */
         .social-container {
             display: flex;
             justify-content: center;
@@ -46,8 +44,6 @@
             box-shadow: 0 6px 20px currentColor;
             filter: brightness(1.1);
         }
-
-        /* Area Canvas yang Lebih Presisi */
         .game-area-wrapper {
             position: relative;
             width: 100%;
@@ -57,8 +53,6 @@
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
-
-        /* Tampilan Overlay Kaca Elegan (Glassmorphism) */
         .overlay {
             background: rgba(18, 18, 18, 0.85) !important;
             backdrop-filter: blur(12px) !important;
@@ -100,15 +94,12 @@
             transform: scale(1.05) !important;
             box-shadow: 0 12px 30px rgba(255, 221, 83, 0.5) !important;
         }
-
         .footer-link {
             color: #ffdd53 !important;
             text-decoration: none;
             font-weight: 600;
             margin-left: 4px;
         }
-        
-        /* Menyembunyikan tombol panah jadul agar layar bersih dan elegan */
         .mobile-controls {
             display: none !important;
         }
@@ -120,7 +111,9 @@
         <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
     </audio>
 
-    <img id="rialoLogoSource" src="IMG_3277.jpeg" alt="Rialo Logo Source" style="display: none;">
+    <img id="rialoLogoSource" src="IMG_3910.png" style="display: none;">
+    <img id="snakeHeadImg" src="IMG_3910.png" style="display: none;">
+    <img id="snakeBodyImg" src="IMG_3921.jpg" style="display: none;">
 
     <div class="game-container">
         <header>
@@ -130,15 +123,15 @@
             </div>
 
             <div class="logo-container">
-                <img src="IMG_3277.jpeg" alt="Rialo Logo" class="rialo-logo">
+                <img src="IMG_3910.png" alt="Game Logo" class="rialo-logo">
             </div>
-            <h1>RIALO GAME SNAKE</h1>
+            <h1>SNAKE II RETRO</h1>
             <div class="scoreboard">
                 <span id="score">SCORE: 0</span>
                 <span id="highScore">HIGH SCORE: 0</span>
             </div>
             <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin: 6px 0 0 0; font-family: -apple-system, sans-serif; letter-spacing: 0.3px;">
-                ✨ Kendali HP: **Geser/Swipe** layar ke arah mana saja untuk belok!
+                ✨ Mobile Control: **Swipe** anywhere on the screen to turn!
             </p>
         </header>
 
@@ -148,16 +141,16 @@
                 
                 <div id="overlay" class="overlay">
                     <h2 id="overlay-title">🛸 SPACE MISSION</h2>
-                    <p id="overlay-text">Geser layar ponselmu untuk mengendalikan misi.</p>
-                    <button id="start-btn">MULAI BERMAIN</button>
+                    <p id="overlay-text">Swipe your phone screen to control the mission.</p>
+                    <button id="start-btn">START GAME</button>
                 </div>
             </main>
         </div>
 
         <section class="leaderboard-section">
-            <h3>🏆 TOP 5 LEADERBOARD GLOBAL</h3>
+            <h3>🏆 TOP 5 GLOBAL LEADERBOARD</h3>
             <ol id="leaderboard-list">
-                <li><span class="rank-name">Memuat data...</span></li>
+                <li><span class="rank-name">Loading data...</span></li>
             </ol>
         </section>
 
