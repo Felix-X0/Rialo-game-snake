@@ -8,6 +8,8 @@ const overlayText = document.getElementById("overlay-text");
 const startBtn = document.getElementById("start-btn");
 const leaderboardList = document.getElementById("leaderboard-list");
 const rialoLogoImg = document.getElementById("rialoLogoSource");
+const snakeHeadImg = document.getElementById("snakeHeadImg");
+const snakeBodyImg = document.getElementById("snakeBodyImg");
 const bgMusic = document.getElementById("bgMusic");
 const swipeGameArea = document.getElementById("swipeGameArea");
 
@@ -29,7 +31,7 @@ let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
 
-tampilkanLeaderboardGlobal();
+fetchGlobalLeaderboard();
 
 startBtn.addEventListener("click", startGame);
 document.addEventListener("keydown", changeDirection);
@@ -53,11 +55,9 @@ function handleSwipeGesture() {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     
-    // Batas minimal jarak geser (piksel) supaya tidak sensitif tidak sengaja tersenggol
     const minSwipeDistance = 30; 
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Geser Horizontal (Kiri/Kanan)
         if (Math.abs(deltaX) > minSwipeDistance) {
             if (deltaX > 0) {
                 triggerDirection("RIGHT");
@@ -66,7 +66,6 @@ function handleSwipeGesture() {
             }
         }
     } else {
-        // Geser Vertikal (Atas/Bawah)
         if (Math.abs(deltaY) > minSwipeDistance) {
             if (deltaY > 0) {
                 triggerDirection("DOWN");
@@ -77,7 +76,6 @@ function handleSwipeGesture() {
     }
 }
 
-// Mencegah halaman naik turun/memantul saat asyik nge-swipe di HP
 document.body.addEventListener('touchmove', function(e) {
     if (isGameRunning) {
         e.preventDefault();
@@ -92,7 +90,7 @@ function startGame() {
     if(bgMusic) {
         bgMusic.volume = 0.20;
         bgMusic.currentTime = 0;
-        bgMusic.play().catch(e => console.log("Menunggu interaksi."));
+        bgMusic.play().catch(e => console.log("Waiting for interaction."));
     }
 
     snake = [
@@ -130,9 +128,23 @@ function clearCanvas() {
 
 function drawSnake() {
     snake.forEach((part, idx) => {
-        // Desain Kepala Minimalis & Badan Emas Elegan
-        ctx.fillStyle = idx === 0 ? "#ffffff" : "#ffdd53";
-        ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
+        if (idx === 0) {
+            // Menggambar Kepala menggunakan IMG_3910.png
+            if (snakeHeadImg.complete && snakeHeadImg.naturalHeight !== 0) {
+                ctx.drawImage(snakeHeadImg, part.x, part.y, gridSize, gridSize);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
+            }
+        } else {
+            // Menggambar Badan menggunakan pola IMG_3921.jpg (Gambar No 2)
+            if (snakeBodyImg.complete && snakeBodyImg.naturalHeight !== 0) {
+                ctx.drawImage(snakeBodyImg, part.x, part.y, gridSize, gridSize);
+            } else {
+                ctx.fillStyle = "#9cb525"; // Fallback hijau retro jika gambar gagal dimuat
+                ctx.fillRect(part.x, part.y, gridSize - 1, gridSize - 1);
+            }
+        }
     });
 }
 
@@ -163,7 +175,12 @@ function drawFood() {
     ctx.beginPath();
     ctx.arc(food.x + gridSize / 2, food.y + gridSize / 2, gridSize / 2, 0, Math.PI * 2);
     ctx.clip();
-    ctx.drawImage(rialoLogoImg, food.x, food.y, gridSize, gridSize);
+    if (rialoLogoImg.complete && rialoLogoImg.naturalHeight !== 0) {
+        ctx.drawImage(rialoLogoImg, food.x, food.y, gridSize, gridSize);
+    } else {
+        ctx.fillStyle = "red";
+        ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    }
     ctx.restore();
 }
 
@@ -202,12 +219,12 @@ function endGame() {
     }
 
     overlayTitle.innerText = "💥 MISSION OVER";
-    overlayText.innerText = `Skor Kamu: ${score} | Kalahkan rekor global berikutnya!`;
-    startBtn.innerText = "COBA LAGI";
+    overlayText.innerText = `Your Score: ${score} | Beat the next global record!`;
+    startBtn.innerText = "TRY AGAIN";
     overlay.style.display = "flex";
 
     setTimeout(() => {
-        let playerName = prompt("👾 Masukkan namamu untuk Leaderboard Global:");
+        let playerName = prompt("👾 Enter your name for the Global Leaderboard:");
         if (!playerName || playerName.trim() === "") playerName = "Player";
         
         database.ref('leaderboard').push({
@@ -218,7 +235,7 @@ function endGame() {
     }, 400);
 }
 
-function tampilkanLeaderboardGlobal() {
+function fetchGlobalLeaderboard() {
     database.ref('leaderboard').orderByChild('score').limitToLast(5).on('value', (snapshot) => {
         let scores = [];
         snapshot.forEach(child => {
@@ -232,7 +249,7 @@ function tampilkanLeaderboardGlobal() {
         }
 
         if (scores.length === 0) {
-            leaderboardList.innerHTML = "<li><span class=\"rank-name\">Belum ada rekor dunia.</span></li>";
+            leaderboardList.innerHTML = "<li><span class=\"rank-name\">No global records yet.</span></li>";
         } else {
             leaderboardList.innerHTML = scores.map((p, i) => 
                 `<li><span class="rank-name">${i + 1}. ${p.name}</span> <span class="rank-score">${p.score}</span></li>`
